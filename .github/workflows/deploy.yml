@@ -20,22 +20,14 @@ jobs:
           python-version: '3.11'
 
       - name: Install Databricks CLI
-        run: pip install databricks-cli
-
-      - name: Configure Databricks CLI
         run: |
-          cat > ~/.databrickscfg << EOF
-          [DEFAULT]
-          host = https://adb-7405608954459582.2.azuredatabricks.net
-          token = ${{ secrets.DATABRICKS_TOKEN }}
-          EOF
+          curl -fsSL https://raw.githubusercontent.com/databricks/setup-cli/main/install.sh | sh
 
-      - name: Create workspace folder
-        run: databricks workspace mkdirs /saude
-
-      - name: Upload notebook to Databricks
+      - name: Deploy notebook
+        env:
+          DATABRICKS_HOST: https://adb-7405608954459582.2.azuredatabricks.net
+          DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
         run: |
-          databricks workspace import --language PYTHON --overwrite functions/transform/transform_databricks.py /saude/transform_saude
-
-      - name: Done
-        run: echo "Deploy concluido!"
+          databricks workspace mkdirs /saude
+          databricks workspace import --file functions/transform/transform_databricks.py --language PYTHON /saude/transform_saude
+          echo "Notebook deployado!"
